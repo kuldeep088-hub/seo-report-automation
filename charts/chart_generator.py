@@ -12,7 +12,9 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")   # non-interactive backend — must be before pyplot import
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import matplotlib.ticker as mticker
+from matplotlib.lines import Line2D
 import numpy as np
 
 log = logging.getLogger(__name__)
@@ -738,6 +740,207 @@ def chart_ctr_top_keywords(context: dict, out_dir: Path) -> Path:
     return path
 
 
+# ── 3-month GSC aggregator ────────────────────────────────────────────────────
+
+def _load_3month_gsc_totals(client_domain: str, end_month: str) -> dict:
+    """
+    Aggregate GSC metrics across 3 months ending at end_month.
+    Returns totals for clicks/impressions and weighted averages for CTR/position.
+    """
+    months = [_prev_month(_prev_month(end_month)), _prev_month(end_month), end_month]
+    total_clicks      = 0
+    total_impressions = 0
+    weighted_ctr_num  = 0.0   # weighted by impressions
+    weighted_pos_num  = 0.0   # weighted by clicks
+    imp_sum           = 0
+    clk_sum           = 0
+
+    for mo in months:
+        rows = _load_gsc_cache(client_domain, mo)
+        if not rows:
+            continue
+        mo_clk = sum(r["clicks"]      for r in rows)
+        mo_imp = sum(r["impressions"] for r in rows)
+        total_clicks      += mo_clk
+        total_impressions += mo_imp
+        weighted_ctr_num  += sum(r["ctr"]      * r["impressions"] for r in rows)
+        weighted_pos_num  += sum(r["position"] * r["clicks"]      for r in rows)
+        imp_sum           += mo_imp
+        clk_sum           += mo_clk
+
+    return {
+        "total_clicks":      total_clicks,
+        "total_impressions": total_impressions,
+        "avg_ctr":           weighted_ctr_num / imp_sum if imp_sum else 0.0,
+        "avg_position":      weighted_pos_num / clk_sum if clk_sum else 0.0,
+        "months":            months,
+    }
+
+
+# ── Chart 0: 3-Month Progress Snapshot — 4 KPI cards ─────────────────────────
+
+def chart_search_console_progress(context: dict, out_dir: Path) -> Path:
+    """
+    Fixed-layout 4-card KPI dashboard showing 3-month totals:
+    Clicks (blue), Impressions (purple), CTR (teal), Avg Position (orange).
+    Current period vs previous period. Layout never changes — only numbers do.
+    File: search_console_progress.png
+    """
+    domain = context["client"]["domain"]
+    month  = context["report_month"]
+
+    # Current period: 3 months ending at current month
+    curr = _load_3month_gsc_totals(domain, month)
+
+    # Previous period: 3 months ending at (current_month − 3)
+    prev_end = _prev_month(_prev_month(_prev_month(month)))
+    prev     = _load_3month_gsc_totals(domain, prev_end)
+
+    # Fallback: if no cache data, use single-month processed values
+    if curr["total_clicks"] == 0:
+        k = context["keywords"]
+        curr["total_clicks"]      = k["total_clicks"]
+        curr["total_impressions"] = k["total_impressions"]
+        curr["avg_ctr"]           = sum(kw["ctr"] for kw in k["top_by_clicks"][:10]) / max(len(k["top_by_clicks"][:10]), 1)
+        curr["avg_position"]      = sum(kw["position"] for kw in k["top_by_clicks"][:10]) / max(len(k["top_by_clicks"][:10]), 1)
+
+    # Human-readable period labels
+    def _period_label(months):
+        return f"{_month_label(months[0])} – {_month_label(months[-1])}"
+
+    curr_label = _period_label(curr["months"])
+    prev_label = _period_label(prev["months"]) if any(prev["months"]) else "Previous Period"
+
+    # ── Card definitions (order, colour, format — NEVER change) ──────────────
+    CARD_COLOR   = {"clicks": "#1A73E8", "impressions": "#7B1FA2",
+                    "ctr":    "#00897B", "position":    "#E65100"}
+    CARD_BG      = {"clicks": "#E8F0FE", "impressions": "#F3E5F5",
+                    "ctr":    "#E0F2F1", "position":    "#FFF3E0"}
+
+    cards = [
+        {"key": "clicks",      "label": "TOTAL CLICKS",
+         "curr": curr["total_clicks"],      "prev": prev["total_clicks"],
+         "fmt": lambda v: f"{int(v):,}",    "lower_better": False},
+        {"key": "impressions", "label": "TOTAL IMPRESSIONS",
+         "curr": curr["total_impressions"], "prev": prev["total_impressions"],
+         "fmt": lambda v: f"{int(v):,}",    "lower_better": False},
+        {"key": "ctr",         "label": "AVERAGE CTR",
+         "curr": curr["avg_ctr"],           "prev": prev["avg_ctr"],
+         "fmt": lambda v: f"{v:.2f}%",      "lower_better": False},
+        {"key": "position",    "label": "AVG POSITION",
+         "curr": curr["avg_position"],      "prev": prev["avg_position"],
+         "fmt": lambda v: f"{v:.1f}",       "lower_better": True},
+    ]
+
+    # ── Figure & layout constants (NEVER change) ──────────────────────────────
+    FIG_W, FIG_H = 14, 5.2
+    MARGIN       = 0.018
+    GAP          = 0.025
+    CARD_W       = (1 - 2 * MARGIN - 3 * GAP) / 4   # ≈ 0.216
+    CARD_H       = 0.68
+    CARD_B       = 0.09   # bottom offset
+
+    fig = plt.figure(figsize=(FIG_W, FIG_H), facecolor="#F2F4F8")
+
+    # Title and period labels
+    fig.text(0.5, 0.955, "3-Month Progress Snapshot (Search Console)",
+             ha="center", va="center",
+             fontsize=14, fontweight="bold", color="#202124")
+    fig.text(0.5, 0.895,
+             f"Current: {curr_label}     |     Previous: {prev_label}",
+             ha="center", va="center", fontsize=9, color="#80868B")
+    fig.text(0.5, 0.025, "Data source: Google Search Console API",
+             ha="center", va="center", fontsize=8, color="#AAAAAA")
+
+    # ── Draw each card ────────────────────────────────────────────────────────
+    for i, card in enumerate(cards):
+        left  = MARGIN + i * (CARD_W + GAP)
+        ax    = fig.add_axes([left, CARD_B, CARD_W, CARD_H])
+        color = CARD_COLOR[card["key"]]
+        bg    = CARD_BG[card["key"]]
+
+        # Card background + border
+        ax.set_facecolor("white")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        for sp in ax.spines.values():
+            sp.set_edgecolor("#DDE1EA")
+            sp.set_linewidth(1.2)
+        ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+        ax.set_axisbelow(True)
+
+        # Coloured header band (top 18% of card)
+        ax.add_patch(mpatches.Rectangle(
+            (0, 0.82), 1, 0.18,
+            transform=ax.transAxes,
+            facecolor=color, edgecolor="none", zorder=3,
+        ))
+
+        # Metric label inside header band
+        ax.text(0.5, 0.91, card["label"],
+                transform=ax.transAxes,
+                ha="center", va="center",
+                fontsize=9.5, fontweight="bold", color="white", zorder=4)
+
+        # Current value (large)
+        ax.text(0.5, 0.635, card["fmt"](card["curr"]),
+                transform=ax.transAxes,
+                ha="center", va="center",
+                fontsize=26, fontweight="bold", color=color, zorder=3)
+
+        # "Current 3-Mo" sub-label
+        ax.text(0.5, 0.505, "Current 3-Mo",
+                transform=ax.transAxes,
+                ha="center", va="center",
+                fontsize=8, color="#9AA0AC", zorder=3)
+
+        # Horizontal divider
+        ax.add_line(Line2D([0.08, 0.92], [0.455, 0.455],
+                           transform=ax.transAxes,
+                           color="#EAECEF", linewidth=1.0, zorder=3))
+
+        # Previous value (medium)
+        ax.text(0.5, 0.365, card["fmt"](card["prev"]),
+                transform=ax.transAxes,
+                ha="center", va="center",
+                fontsize=17, fontweight="bold", color="#6C737A", zorder=3)
+
+        # "Previous 3-Mo" sub-label
+        ax.text(0.5, 0.255, "Previous 3-Mo",
+                transform=ax.transAxes,
+                ha="center", va="center",
+                fontsize=8, color="#9AA0AC", zorder=3)
+
+        # Change indicator badge
+        prev_val = card["prev"]
+        if prev_val > 0:
+            pct      = (card["curr"] - prev_val) / prev_val * 100
+            is_good  = pct < 0 if card["lower_better"] else pct >= 0
+            chg_clr  = "#34A853" if is_good else "#EA4335"
+            chg_bg   = "#E6F4EA" if is_good else "#FDECEA"
+            arrow    = "▲" if pct >= 0 else "▼"
+            sign     = "+" if pct > 0 else ""
+            badge    = f"{arrow}  {sign}{pct:.1f}%"
+        else:
+            badge   = "No prior data"
+            chg_clr = "#9AA0AC"
+            chg_bg  = "#F5F6F8"
+
+        ax.text(0.5, 0.120, badge,
+                transform=ax.transAxes,
+                ha="center", va="center",
+                fontsize=11, fontweight="bold", color=chg_clr,
+                bbox=dict(boxstyle="round,pad=0.28",
+                          facecolor=chg_bg, edgecolor="none"),
+                zorder=3)
+
+    path = out_dir / "search_console_progress.png"
+    fig.savefig(path, dpi=150, bbox_inches="tight", facecolor="#F2F4F8")
+    plt.close(fig)
+    log.info("Chart saved: %s", path)
+    return path
+
+
 # ── Public entry point ────────────────────────────────────────────────────────
 
 def generate_all_charts(context: dict, client_id: str) -> dict:
@@ -753,6 +956,7 @@ def generate_all_charts(context: dict, client_id: str) -> dict:
 
     charts = {
         # Search Console
+        "sc_progress":         chart_search_console_progress(context, out_dir),
         "clicks_impressions":  chart_gsc_clicks_impressions(context, out_dir),
         "ctr_keywords":        chart_ctr_top_keywords(context, out_dir),
         # GA4 Traffic

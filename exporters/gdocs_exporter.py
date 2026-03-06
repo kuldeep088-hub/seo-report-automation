@@ -276,6 +276,8 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
             ["Lost Keywords",     str(k["lost_keywords_count"]),   "-", "-"],
         ],
     )
+    h2("3-Month Progress Snapshot (Search Console)")
+    mark("sc_progress")
     h2("Clicks vs Impressions Trend")
     mark("clicks_impressions")
     ins("\n")
