@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SEO Report — {{ client.name }} — {{ report_month }}</title>
+  <style>
+    /* ── Base ────────────────────────────────────────────── */
+    @page {
+      size: A4;
+      margin: 20mm 18mm 20mm 18mm;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 10.5pt;
+      color: #1a1a2e;
+      line-height: 1.65;
+    }
+    a { color: #2563eb; text-decoration: none; }
+
+    /* ── Cover Page ──────────────────────────────────────── */
+    .cover {
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      height: 250mm;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      color: white;
+      border-radius: 8px;
+      padding: 40px;
+    }
+    .cover .agency { font-size: 13pt; letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; margin-bottom: 30px; }
+    .cover h1 { font-size: 28pt; font-weight: 700; margin-bottom: 8px; }
+    .cover .subtitle { font-size: 14pt; opacity: 0.85; margin-bottom: 30px; }
+    .cover .divider { width: 60px; height: 3px; background: #3b82f6; margin: 20px auto; border-radius: 2px; }
+    .cover .meta { font-size: 11pt; opacity: 0.7; }
+
+    /* ── Section headers ─────────────────────────────────── */
+    .section { margin-top: 30px; margin-bottom: 16px; page-break-inside: avoid; }
+    .section-title {
+      font-size: 15pt;
+      font-weight: 700;
+      color: #1e3a5f;
+      border-left: 4px solid #3b82f6;
+      padding-left: 10px;
+      margin-bottom: 12px;
+    }
+    h3 { font-size: 11pt; font-weight: 600; color: #374151; margin-bottom: 6px; margin-top: 14px; }
+
+    /* ── Metric cards ─────────────────────────────────────── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .metric-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .metric-label { font-size: 8.5pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 18pt; font-weight: 700; color: #1e3a5f; line-height: 1.2; }
+    .metric-change { font-size: 9pt; margin-top: 2px; }
+    .positive { color: #16a34a; }
+    .negative { color: #dc2626; }
+    .neutral  { color: #6b7280; }
+
+    /* ── Tables ───────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5pt;
+      margin-top: 10px;
+      margin-bottom: 16px;
+    }
+    thead tr { background: #1e3a5f; color: white; }
+    thead th { padding: 7px 10px; text-align: left; font-weight: 600; }
+    tbody tr:nth-child(even) { background: #f1f5f9; }
+    tbody tr:nth-child(odd)  { background: #ffffff; }
+    tbody td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; }
+
+    /* ── Prose text ───────────────────────────────────────── */
+    .prose p { margin-bottom: 10px; }
+
+    /* ── Work Done list ───────────────────────────────────── */
+    .work-list { list-style: none; padding: 0; }
+    .work-list li {
+      padding: 5px 0 5px 20px;
+      position: relative;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .work-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #16a34a;
+      font-weight: 700;
+    }
+
+    /* ── Next Steps list ──────────────────────────────────── */
+    .next-list { list-style: none; padding: 0; }
+    .next-list li {
+      padding: 6px 0 6px 22px;
+      position: relative;
+    }
+    .next-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #3b82f6;
+      font-weight: 700;
+    }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    .footer {
+      margin-top: 40px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 8.5pt;
+      color: #94a3b8;
+      text-align: center;
+    }
+
+    /* ── Page breaks ──────────────────────────────────────── */
+    .page-break { page-break-before: always; }
+  </style>
+</head>
+<body>
+
+  <!-- ── COVER ────────────────────────────────────────────── -->
+  <div class="cover">
+    <div class="agency">Growleads Agency</div>
+    <h1>SEO Monthly Report</h1>
+    <div class="subtitle">{{ client.name }}</div>
+    <div class="divider"></div>
+    <div class="meta">
+      {{ report_month_display }}<br>
+      {{ client.domain }}
+    </div>
+  </div>
+
+  <!-- ── EXECUTIVE SUMMARY ────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">Executive Summary</div>
+    <div class="prose">
+      {% for para in sections.executive_summary.split('\n\n') %}
+        <p>{{ para }}</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── TOP-LEVEL METRICS ────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">At a Glance</div>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Organic Sessions</div>
+        <div class="metric-value">{{ traffic.organic_sessions | commas }}</div>
+        <div class="metric-change {{ 'positive' if traffic.organic_sessions_change_pct >= 0 else 'negative' }}">
+          {{ '%+.1f' | format(traffic.organic_sessions_change_pct) }}% vs last month
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Organic Clicks</div>
+        <div class="metric-value">{{ keywords.total_clicks | commas }}</div>
+        <div class="metric-change {{ 'positive' if keywords.clicks_change_pct >= 0 else 'negative' }}">
+          {{ '%+.1f' | format(keywords.clicks_change_pct) }}% vs last month
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Impressions</div>
+        <div class="metric-value">{{ keywords.total_impressions | commas }}</div>
+        <div class="metric-change {{ 'positive' if keywords.impressions_change_pct >= 0 else 'negative' }}">
+          {{ '%+.1f' | format(keywords.impressions_change_pct) }}% vs last month
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Keywords in Top 10</div>
+        <div class="metric-value">{{ keywords.keywords_in_top_10 }}</div>
+        <div class="metric-change neutral">{{ keywords.keywords_in_top_3 }} in Top 3</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">New Backlinks</div>
+        <div class="metric-value">{{ backlinks.new_backlinks_count }}</div>
+        <div class="metric-change neutral">{{ backlinks.lost_backlinks_count }} lost</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Domain Rating</div>
+        <div class="metric-value">{{ backlinks.domain_rating }}</div>
+        <div class="metric-change neutral">{{ backlinks.referring_domains }} referring domains</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TRAFFIC ───────────────────────────────────────────── -->
+  <div class="section page-break">
+    <div class="section-title">Organic Traffic</div>
+    <div class="prose">
+      {% for para in sections.traffic_analysis.split('\n\n') %}
+        <p>{{ para }}</p>
+      {% endfor %}
+    </div>
+
+    <h3>Traffic by Channel</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Channel</th>
+          <th>Sessions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ch in traffic.top_channels %}
+        <tr>
+          <td>{{ ch.channel }}</td>
+          <td>{{ ch.sessions | commas }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── KEYWORDS ─────────────────────────────────────────── -->
+  <div class="section page-break">
+    <div class="section-title">Keyword Rankings</div>
+    <div class="prose">
+      {% for para in sections.keyword_rankings.split('\n\n') %}
+        <p>{{ para }}</p>
+      {% endfor %}
+    </div>
+
+    <h3>Top Keywords by Clicks</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Keyword</th>
+          <th>Clicks</th>
+          <th>Impressions</th>
+          <th>CTR %</th>
+          <th>Position</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for kw in keywords.top_by_clicks %}
+        <tr>
+          <td>{{ kw.keyword }}</td>
+          <td>{{ kw.clicks }}</td>
+          <td>{{ kw.impressions }}</td>
+          <td>{{ kw.ctr }}%</td>
+          <td>{{ kw.position }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if keywords.most_improved %}
+    <h3>Most Improved Keywords</h3>
+    <table>
+      <thead>
+        <tr><th>Keyword</th><th>Previous Position</th><th>Current Position</th><th>Change</th></tr>
+      </thead>
+      <tbody>
+        {% for kw in keywords.most_improved %}
+        <tr>
+          <td>{{ kw.keyword }}</td>
+          <td>{{ kw.position_prev }}</td>
+          <td>{{ kw.position }}</td>
+          <td class="positive">+{{ kw.delta }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+
+  <!-- ── BACKLINKS ─────────────────────────────────────────── -->
+  <div class="section page-break">
+    <div class="section-title">Backlinks</div>
+    <div class="prose">
+      {% for para in sections.backlinks.split('\n\n') %}
+        <p>{{ para }}</p>
+      {% endfor %}
+    </div>
+
+    {% if backlinks.top_new_backlinks %}
+    <h3>Top New Backlinks This Month</h3>
+    <table>
+      <thead>
+        <tr><th>Source URL</th><th>DR</th><th>Anchor Text</th><th>Type</th></tr>
+      </thead>
+      <tbody>
+        {% for bl in backlinks.top_new_backlinks %}
+        <tr>
+          <td>{{ bl.url_from | truncate(55) }}</td>
+          <td>{{ bl.domain_rating_source }}</td>
+          <td>{{ bl.anchor | truncate(30) }}</td>
+          <td>{{ "Dofollow" if bl.is_dofollow else "Nofollow" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+
+  <!-- ── WORK DONE ─────────────────────────────────────────── -->
+  <div class="section page-break">
+    <div class="section-title">Work Done This Month</div>
+    <ul class="work-list">
+      {% for line in sections.work_done.split('\n') %}
+        {% set clean = line.strip().lstrip('-').strip() %}
+        {% if clean %}
+          <li>{{ clean }}</li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- ── NEXT STEPS ────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">Next Month Plan</div>
+    <ul class="next-list">
+      {% for line in sections.next_steps.split('\n') %}
+        {% set clean = line.strip().lstrip('-').strip() %}
+        {% if clean %}
+          <li>{{ clean }}</li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- ── FOOTER ────────────────────────────────────────────── -->
+  <div class="footer">
+    Report prepared by Growleads &nbsp;|&nbsp; {{ report_month_display }} &nbsp;|&nbsp; {{ client.domain }}
+  </div>
+
+</body>
+</html>

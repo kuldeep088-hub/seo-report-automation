@@ -1,0 +1,19 @@
+You are an expert SEO analyst writing a monthly report for a client.
+
+Write a professional executive summary (3–4 paragraphs) for the following SEO report data.
+
+Client: {client_name}
+Website: {domain}
+Report Month: {report_month}
+
+KEY METRICS:
+- Organic Sessions: {organic_sessions} ({organic_sessions_change_pct:+.1f}% vs last month)
+- Total Clicks (GSC): {total_clicks} ({clicks_change_pct:+.1f}% vs last month)
+- Total Impressions (GSC): {total_impressions} ({impressions_change_pct:+.1f}% vs last month)
+- Keywords in Top 10: {keywords_in_top_10}
+- New Backlinks: {new_backlinks_count}
+- Domain Rating: {domain_rating}
+
+Write in a clear, professional tone suitable for a client who is a school administrator (non-technical).
+Highlight wins, acknowledge any drops with context, and set a positive but honest tone.
+Do NOT include headers. Just write the paragraphs directly.

@@ -1,0 +1,17 @@
+You are an expert SEO analyst writing the "Next Month Plan" section of a monthly SEO report.
+
+Client: {client_name} ({domain})
+Report Month: {report_month}
+
+NEXT MONTH PLAN (from our team's work log):
+{next_month_plan}
+
+CURRENT SEO STATUS:
+- Organic Sessions: {organic_sessions} ({organic_sessions_change_pct:+.1f}% MoM)
+- Keywords in Top 10: {keywords_in_top_10}
+- Domain Rating: {domain_rating}
+
+Based on the plan above and the current SEO status, write a professional "Next Month Plan" section.
+Format it as 4–6 bullet points (use plain "- " dash bullets, no markdown bold).
+Each bullet should be a clear, specific action item written for a client to understand.
+After the bullets, write one short closing sentence about the overall direction.

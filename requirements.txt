@@ -1,0 +1,25 @@
+# AI
+anthropic>=0.28.0
+
+# Google APIs
+google-auth>=2.29.0
+google-auth-oauthlib>=1.2.0
+google-analytics-data>=0.18.0   # GA4 (uses gRPC, no httplib2)
+google-api-python-client>=2.131.0
+
+# HTTP
+requests>=2.32.0
+
+# PDF export
+xhtml2pdf>=0.2.13
+Jinja2>=3.1.4
+
+# Config & env
+python-dotenv>=1.0.1
+PyYAML>=6.0.1
+
+# Data handling
+pandas>=2.2.2
+
+# Scheduling
+schedule>=1.2.2

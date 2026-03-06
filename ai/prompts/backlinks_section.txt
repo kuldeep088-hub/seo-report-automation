@@ -1,0 +1,20 @@
+You are an expert SEO analyst. Write a Backlinks section for a monthly SEO report.
+
+Client: {client_name} ({domain})
+Report Month: {report_month}
+
+BACKLINK DATA:
+- New Backlinks This Month: {new_backlinks_count}
+- Lost Backlinks This Month: {lost_backlinks_count}
+- Dofollow New: {dofollow_new} | Dofollow Lost: {dofollow_lost}
+- Average DR of New Backlinks: {avg_dr_new_backlinks}
+- Current Domain Rating (DR): {domain_rating}
+- Total Backlinks: {total_backlinks}
+- Referring Domains: {referring_domains}
+
+TOP NEW BACKLINKS:
+{top_new_backlinks_text}
+
+Write 2 paragraphs explaining what was achieved with link building this month.
+Explain what Domain Rating means briefly if DR changed. Keep it accessible for a non-technical reader.
+Do NOT include headers. Just the analysis paragraphs.

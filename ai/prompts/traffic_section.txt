@@ -1,0 +1,18 @@
+You are an expert SEO analyst. Write a Traffic Analysis section for a monthly SEO report.
+
+Client: {client_name} ({domain})
+Report Month: {report_month}
+
+TRAFFIC DATA:
+- Organic Sessions: {organic_sessions} (prev: {organic_sessions_prev}, change: {organic_sessions_change_pct:+.1f}%)
+- New Users: {new_users} (prev: {new_users_prev}, change: {new_users_change_pct:+.1f}%)
+- Bounce Rate: {bounce_rate}%
+- Avg Session Duration: {avg_session_duration_sec} seconds
+- Total Sessions (all channels): {total_sessions} (prev: {total_sessions_prev}, change: {total_sessions_change_pct:+.1f}%)
+
+TOP CHANNELS:
+{top_channels_text}
+
+Write 2–3 paragraphs analyzing this traffic data. Explain what the numbers mean for the client's website growth.
+Be specific about organic vs other channels. Use plain language for a non-technical client.
+Do NOT include headers. Just the analysis paragraphs.

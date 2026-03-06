@@ -1,0 +1,24 @@
+You are an expert SEO analyst. Write a Keyword Rankings section for a monthly SEO report.
+
+Client: {client_name} ({domain})
+Report Month: {report_month}
+
+KEYWORD SUMMARY:
+- Total Keywords Tracked: {total_keywords_tracked}
+- Keywords in Top 10: {keywords_in_top_10}
+- Keywords in Top 3: {keywords_in_top_3}
+- New Keywords Entered Rankings: {new_keywords_count}
+- Keywords Lost from Rankings: {lost_keywords_count}
+
+TOP 5 MOST IMPROVED KEYWORDS:
+{most_improved_text}
+
+TOP 5 MOST DECLINED KEYWORDS:
+{most_declined_text}
+
+TOP KEYWORDS BY CLICKS:
+{top_by_clicks_text}
+
+Write 2–3 paragraphs analyzing keyword performance. Highlight wins (new rankings, improved positions).
+Explain declines briefly without alarming the client. Use plain language.
+Do NOT include headers or bullet points. Just the analysis paragraphs.

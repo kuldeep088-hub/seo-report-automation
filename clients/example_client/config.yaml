@@ -1,0 +1,16 @@
+client:
+  name: "Example Business"
+  domain: "example.com"
+  ga4_property_id: "REPLACE_WITH_YOUR_GA4_PROPERTY_ID"
+  gsc_site_url: "https://example.com/"
+  ahrefs_target: "example.com"
+
+targets:
+  organic_sessions_goal: 10000
+  new_backlinks_goal: 20
+  top_10_keywords_goal: 50
+
+report:
+  output_format:
+    - pdf
+  gdocs_folder_id: ""
