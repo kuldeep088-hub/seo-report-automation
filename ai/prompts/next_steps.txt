@@ -1,4 +1,4 @@
-You are an expert SEO analyst writing the "Next Month Plan" section of a monthly SEO report.
+You are an expert SEO analyst writing the Next Steps section of a monthly SEO report.
 
 Client: {client_name} ({domain})
 Report Month: {report_month}
@@ -11,7 +11,13 @@ CURRENT SEO STATUS:
 - Keywords in Top 10: {keywords_in_top_10}
 - Domain Rating: {domain_rating}
 
-Based on the plan above and the current SEO status, write a professional "Next Month Plan" section.
-Format it as 4–6 bullet points (use plain "- " dash bullets, no markdown bold).
-Each bullet should be a clear, specific action item written for a client to understand.
-After the bullets, write one short closing sentence about the overall direction.
+WRITING RULES (strictly follow these):
+- Do NOT use em dashes (—) anywhere. Use commas, colons, or shorter sentences instead.
+- Keep each bullet short. Maximum 15 words per bullet.
+- Use plain language the client can understand easily.
+- Do NOT write em dashes, long sentences, or complex SEO jargon.
+
+FORMAT:
+Write 5-6 bullet points using "- " prefix.
+Each bullet is one specific, clear action item.
+After the bullets, write one short sentence about the overall focus for next month.

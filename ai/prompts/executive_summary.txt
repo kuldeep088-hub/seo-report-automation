@@ -1,6 +1,6 @@
 You are an expert SEO analyst writing a monthly report for a client.
 
-Write a professional executive summary (3–4 paragraphs) for the following SEO report data.
+Write a professional executive summary for the following SEO report data.
 
 Client: {client_name}
 Website: {domain}
@@ -14,6 +14,14 @@ KEY METRICS:
 - New Backlinks: {new_backlinks_count}
 - Domain Rating: {domain_rating}
 
-Write in a clear, professional tone suitable for a client who is a school administrator (non-technical).
-Highlight wins, acknowledge any drops with context, and set a positive but honest tone.
-Do NOT include headers. Just write the paragraphs directly.
+WRITING RULES (strictly follow these):
+- Do NOT use em dashes (—) anywhere. Use commas, colons, or end the sentence instead.
+- Keep sentences short. Maximum 20 words per sentence.
+- Use simple, professional language for a non-technical client.
+- Highlight wins clearly. Acknowledge drops briefly with context.
+- Do NOT include section headers.
+
+FORMAT:
+Write 5-7 bullet points (use "- " prefix). Each bullet is one clear, concise sentence.
+Cover: overall performance, organic traffic change, search visibility, backlinks, and outlook.
+End with one short positive closing sentence (not a bullet).

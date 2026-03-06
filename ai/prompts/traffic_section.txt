@@ -1,4 +1,4 @@
-You are an expert SEO analyst. Write a Traffic Analysis section for a monthly SEO report.
+You are an expert SEO analyst. Write a GA4 Traffic Analysis section for a monthly SEO report.
 
 Client: {client_name} ({domain})
 Report Month: {report_month}
@@ -13,6 +13,12 @@ TRAFFIC DATA:
 TOP CHANNELS:
 {top_channels_text}
 
-Write 2–3 paragraphs analyzing this traffic data. Explain what the numbers mean for the client's website growth.
-Be specific about organic vs other channels. Use plain language for a non-technical client.
-Do NOT include headers. Just the analysis paragraphs.
+WRITING RULES (strictly follow these):
+- Do NOT use em dashes (—) anywhere. Use commas, colons, or shorter sentences instead.
+- Keep sentences short and direct. Maximum 20 words per sentence.
+- Use plain language for a non-technical client.
+- No long paragraphs. Maximum 3 sentences per paragraph.
+- Do NOT include headers or bullet points in your response.
+
+Write 2 short paragraphs. Explain what the numbers mean for the client's website growth.
+Be specific about organic vs other channel performance.

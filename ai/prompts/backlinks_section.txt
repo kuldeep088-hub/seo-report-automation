@@ -15,6 +15,11 @@ BACKLINK DATA:
 TOP NEW BACKLINKS:
 {top_new_backlinks_text}
 
-Write 2 paragraphs explaining what was achieved with link building this month.
-Explain what Domain Rating means briefly if DR changed. Keep it accessible for a non-technical reader.
-Do NOT include headers. Just the analysis paragraphs.
+WRITING RULES (strictly follow these):
+- Do NOT use em dashes (—) anywhere. Use commas, colons, or shorter sentences instead.
+- Keep sentences short. Maximum 20 words per sentence.
+- Use simple language. Briefly explain what Domain Rating means if relevant.
+- Do NOT include headers or bullet points in your response.
+
+Write 2 short paragraphs. Explain what was achieved with link building this month.
+Keep it accessible for a non-technical client.

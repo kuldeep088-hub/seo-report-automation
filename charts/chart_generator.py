@@ -324,10 +324,130 @@ def chart_engagement_metrics(context: dict, out_dir: Path) -> Path:
     return path
 
 
+# ── Chart 6: Goal Performance — target vs actual ─────────────────────────────
+
+def chart_goal_performance(context: dict, out_dir: Path) -> Path:
+    targets = context.get("targets", {})
+    t, k, b = context["traffic"], context["keywords"], context["backlinks"]
+
+    metrics = [
+        ("Organic\nSessions", targets.get("organic_sessions_goal", 0), t["organic_sessions"]),
+        ("Top 10\nKeywords",  targets.get("top_10_keywords_goal", 0),  k["keywords_in_top_10"]),
+        ("New\nBacklinks",    targets.get("new_backlinks_goal", 0),     b["new_backlinks_count"]),
+    ]
+
+    labels      = [m[0] for m in metrics]
+    target_vals = [m[1] for m in metrics]
+    actual_vals = [m[2] for m in metrics]
+    bar_colors  = [GREEN if a >= tgt else RED for a, tgt in zip(actual_vals, target_vals)]
+
+    x     = np.arange(len(labels))
+    width = 0.35
+
+    fig, ax = plt.subplots(figsize=(8, 4.5), facecolor="white")
+    ax.bar(x - width / 2, target_vals, width, label="Target", color=GREY, alpha=0.55)
+    bars = ax.bar(x + width / 2, actual_vals, width, label="Actual", color=bar_colors, alpha=0.9)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, fontsize=9)
+    ax.legend(fontsize=9)
+    _style_ax(ax, "Goal Performance — Target vs Actual")
+
+    max_val = max(max(target_vals), max(actual_vals)) if target_vals else 1
+    for bar, color in zip(bars, bar_colors):
+        ax.text(bar.get_x() + bar.get_width() / 2,
+                bar.get_height() + max_val * 0.02,
+                f"{int(bar.get_height()):,}",
+                ha="center", fontsize=9, fontweight="bold", color=color)
+
+    fig.tight_layout()
+    path = out_dir / "goal_performance.png"
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    log.info("Chart saved: %s", path)
+    return path
+
+
+# ── Chart 7: Backlink Overview — new vs lost + dofollow breakdown ─────────────
+
+def chart_backlink_overview(context: dict, out_dir: Path) -> Path:
+    b = context["backlinks"]
+    new_bl  = b["new_backlinks_count"]
+    lost_bl = b["lost_backlinks_count"]
+    do_new  = b.get("dofollow_new", 0)
+    do_lost = b.get("dofollow_lost", 0)
+    nf_new  = max(0, new_bl - do_new)
+    nf_lost = max(0, lost_bl - do_lost)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 4.5), facecolor="white")
+
+    # New vs lost
+    cats   = ["New Backlinks", "Lost Backlinks"]
+    vals   = [new_bl, lost_bl]
+    colors = [GREEN, RED]
+    b1 = ax1.bar(cats, vals, color=colors, alpha=0.85, width=0.45)
+    _style_ax(ax1, "New vs Lost Backlinks")
+    max_v = max(vals) if vals else 1
+    for bar in b1:
+        ax1.text(bar.get_x() + bar.get_width() / 2,
+                 bar.get_height() + max_v * 0.03,
+                 str(int(bar.get_height())),
+                 ha="center", fontsize=11, fontweight="bold", color="#202124")
+
+    # Dofollow breakdown
+    x2    = np.arange(2)
+    w2    = 0.35
+    ax2.bar(x2 - w2 / 2, [do_new, do_lost],  w2, label="Dofollow",  color=[GREEN, RED],  alpha=0.85)
+    ax2.bar(x2 + w2 / 2, [nf_new, nf_lost],  w2, label="Nofollow",  color=[GREY, GREY],  alpha=0.5)
+    ax2.set_xticks(x2)
+    ax2.set_xticklabels(["New Links", "Lost Links"])
+    ax2.legend(fontsize=8)
+    _style_ax(ax2, "Dofollow vs Nofollow Breakdown")
+
+    fig.tight_layout()
+    path = out_dir / "backlink_overview.png"
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    log.info("Chart saved: %s", path)
+    return path
+
+
+# ── Chart 8: CTR by Top Keywords ──────────────────────────────────────────────
+
+def chart_ctr_top_keywords(context: dict, out_dir: Path) -> Path:
+    top    = context["keywords"]["top_by_clicks"][:8]
+    labels = [kw["keyword"][:32] + "…" if len(kw["keyword"]) > 32 else kw["keyword"]
+              for kw in top]
+    ctrs   = [kw["ctr"] for kw in top]
+    colors = [GREEN if c >= 3 else BLUE if c >= 1 else ORANGE for c in ctrs]
+
+    fig, ax = plt.subplots(figsize=(9, 5), facecolor="white")
+    bars = ax.barh(labels[::-1], ctrs[::-1], color=colors[::-1], alpha=0.9, height=0.6)
+
+    max_c = max(ctrs) if ctrs else 1
+    for bar in bars:
+        w = bar.get_width()
+        ax.text(w + max_c * 0.01, bar.get_y() + bar.get_height() / 2,
+                f"{w:.1f}%", va="center", fontsize=8, color=GREY)
+
+    ax.set_xlabel("Click-Through Rate (%)")
+    ax.set_xlim(0, max_c * 1.2)
+    _style_ax(ax, "Click-Through Rate by Top Keywords (Source: GSC)")
+    ax.spines["left"].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+
+    fig.tight_layout()
+    path = out_dir / "ctr_top_keywords.png"
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    log.info("Chart saved: %s", path)
+    return path
+
+
 # ── Public entry point ────────────────────────────────────────────────────────
 
 def generate_all_charts(context: dict, client_id: str) -> dict:
-    """Generate all 5 SEO charts. Returns dict mapping chart name → Path."""
+    """Generate all 8 SEO charts. Returns dict mapping chart name → Path."""
     month   = context["report_month"]
     out_dir = _out_dir(client_id, month)
     log.info("Generating charts for %s / %s ...", client_id, month)
@@ -338,6 +458,9 @@ def generate_all_charts(context: dict, client_id: str) -> dict:
         "keyword_rankings":   chart_keyword_ranking_trend(context, out_dir),
         "top_pages":          chart_top_landing_pages(context, out_dir),
         "engagement":         chart_engagement_metrics(context, out_dir),
+        "goal_performance":   chart_goal_performance(context, out_dir),
+        "backlink_overview":  chart_backlink_overview(context, out_dir),
+        "ctr_keywords":       chart_ctr_top_keywords(context, out_dir),
     }
 
     log.info("All %d charts generated.", len(charts))

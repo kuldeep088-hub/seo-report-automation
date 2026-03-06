@@ -1,4 +1,4 @@
-You are an expert SEO analyst. Write a Keyword Rankings section for a monthly SEO report.
+You are an expert SEO analyst. Write a Search Console Performance section for a monthly SEO report.
 
 Client: {client_name} ({domain})
 Report Month: {report_month}
@@ -19,6 +19,11 @@ TOP 5 MOST DECLINED KEYWORDS:
 TOP KEYWORDS BY CLICKS:
 {top_by_clicks_text}
 
-Write 2–3 paragraphs analyzing keyword performance. Highlight wins (new rankings, improved positions).
-Explain declines briefly without alarming the client. Use plain language.
-Do NOT include headers or bullet points. Just the analysis paragraphs.
+WRITING RULES (strictly follow these):
+- Do NOT use em dashes (—) anywhere. Use commas, colons, or shorter sentences instead.
+- Keep sentences short. Maximum 20 words per sentence.
+- Use plain language. The client is not an SEO expert.
+- Do NOT include headers in your response.
+- Do NOT use bullet points in your response. Write in short paragraphs only.
+
+Write 2 short paragraphs. Highlight keyword wins. Briefly explain any declines without alarming the client.

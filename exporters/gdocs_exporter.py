@@ -91,29 +91,39 @@ def _get_or_create_subfolder(drive_service, parent_id: str, folder_name: str) ->
 
 
 # ── Brand colours ─────────────────────────────────────────────────────────────
-_BLUE_RGB   = {"red": 47 / 255, "green": 128 / 255, "blue": 237 / 255}  # #2F80ED
-_SEPARATOR  = "_" * 56 + "\n"
+_BLUE_RGB    = {"red": 47 / 255,  "green": 128 / 255, "blue": 237 / 255}  # #2F80ED
+_SEPARATOR   = "_" * 56 + "\n"
+
+# Highlight box background colours
+_INSIGHT_BG  = {"red": 0.922, "green": 0.953, "blue": 0.992}   # #EBF3FD light blue
+_GROWTH_BG   = {"red": 0.902, "green": 0.957, "blue": 0.918}   # #E6F4EA light green
+_WARNING_BG  = {"red": 0.996, "green": 0.969, "blue": 0.878}   # #FEF7E0 light amber
 
 _H1_TEXT_STYLE = {
-    "bold":            True,
-    "fontSize":        {"magnitude": 18, "unit": "PT"},
-    "foregroundColor": {"color": {"rgbColor": _BLUE_RGB}},
+    "bold":               True,
+    "fontSize":           {"magnitude": 16, "unit": "PT"},
+    "foregroundColor":    {"color": {"rgbColor": _BLUE_RGB}},
     "weightedFontFamily": {"fontFamily": "Arial"},
 }
 _H2_TEXT_STYLE = {
-    "bold":            True,
-    "fontSize":        {"magnitude": 14, "unit": "PT"},
-    "foregroundColor": {"color": {"rgbColor": _BLUE_RGB}},
+    "bold":               True,
+    "fontSize":           {"magnitude": 13, "unit": "PT"},
+    "foregroundColor":    {"color": {"rgbColor": _BLUE_RGB}},
     "weightedFontFamily": {"fontFamily": "Arial"},
 }
 _TITLE_TEXT_STYLE = {
-    "bold":            True,
-    "fontSize":        {"magnitude": 26, "unit": "PT"},
-    "foregroundColor": {"color": {"rgbColor": _BLUE_RGB}},
+    "bold":               True,
+    "fontSize":           {"magnitude": 22, "unit": "PT"},
+    "foregroundColor":    {"color": {"rgbColor": _BLUE_RGB}},
     "weightedFontFamily": {"fontFamily": "Arial"},
 }
 _HEADER_CELL_STYLE = {
     "bold":            True,
+    "foregroundColor": {"color": {"rgbColor": _BLUE_RGB}},
+}
+_BOX_TITLE_STYLE = {
+    "bold":            True,
+    "fontSize":        {"magnitude": 10, "unit": "PT"},
     "foregroundColor": {"color": {"rgbColor": _BLUE_RGB}},
 }
 
@@ -210,6 +220,21 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
         table_specs.append({"index": pos, "headers": headers, "rows": rows})
         ins("\n")
 
+    def box(title: str, items: list, color: str = "insight"):
+        """Coloured highlight box (Key Insights, Growth Opportunities, etc.)."""
+        bg_map = {"insight": _INSIGHT_BG, "growth": _GROWTH_BG, "warning": _WARNING_BG}
+        bullet_lines = "\n".join(f"\u2022  {item}" for item in items)
+        content = f"{title}\n{bullet_lines}"
+        table_specs.append({
+            "index":         pos,
+            "headers":       [],
+            "rows":          [[content]],
+            "is_highlight":  True,
+            "box_color":     bg_map.get(color, _INSIGHT_BG),
+            "box_title_len": _u(title),
+        })
+        ins("\n")
+
     def mark(name: str):
         """Placeholder paragraph replaced by a chart image later."""
         marker_text = f"{_CHART_PREFIX}{name}{_CHART_SUFFIX}"
@@ -226,6 +251,14 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
     # ── 1. Executive Summary ─────────────────────────────────────────────────
     h1("1. Executive Summary")
     ins(sections["executive_summary"] + "\n\n")
+    box("KEY METRICS AT A GLANCE", [
+        f"Organic Sessions: {t['organic_sessions']:,}  ({_pct_str(t['organic_sessions_change_pct'])} vs last month)",
+        f"Organic Clicks (GSC): {k['total_clicks']:,}  ({_pct_str(k['clicks_change_pct'])} vs last month)",
+        f"Impressions (GSC): {k['total_impressions']:,}  ({_pct_str(k['impressions_change_pct'])} vs last month)",
+        f"Keywords in Top 10: {k['keywords_in_top_10']}   |   Keywords in Top 3: {k['keywords_in_top_3']}",
+        f"Domain Rating: {b['domain_rating']}   |   New Backlinks this month: {b['new_backlinks_count']}",
+    ], color="insight")
+    ins("\n")
 
     # ── 2. Search Console Performance ────────────────────────────────────────
     h1("2. Search Console Performance")
@@ -234,19 +267,28 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
     table(
         headers=["Metric", "Current", "Previous", "Change"],
         rows=[
-            ["Organic Clicks",    f"{k['total_clicks']:,}",      f"{k['total_clicks_prev']:,}",      _pct_str(k["clicks_change_pct"])],
-            ["Impressions",       f"{k['total_impressions']:,}",  f"{k['total_impressions_prev']:,}", _pct_str(k["impressions_change_pct"])],
-            ["Keywords (Top 10)", str(k["keywords_in_top_10"]),   "-", "-"],
-            ["Keywords (Top 3)",  str(k["keywords_in_top_3"]),    "-", "-"],
-            ["New Keywords",      str(k["new_keywords_count"]),   "-", "-"],
-            ["Lost Keywords",     str(k["lost_keywords_count"]),  "-", "-"],
+            ["Organic Clicks",    f"{k['total_clicks']:,}",       f"{k['total_clicks_prev']:,}",      _pct_str(k["clicks_change_pct"])],
+            ["Impressions",       f"{k['total_impressions']:,}",   f"{k['total_impressions_prev']:,}", _pct_str(k["impressions_change_pct"])],
+            ["Keywords (Top 10)", str(k["keywords_in_top_10"]),    "-", "-"],
+            ["Keywords (Top 3)",  str(k["keywords_in_top_3"]),     "-", "-"],
+            ["New Keywords",      str(k["new_keywords_count"]),    "-", "-"],
+            ["Lost Keywords",     str(k["lost_keywords_count"]),   "-", "-"],
         ],
     )
     h2("3 Month Progress Snapshot")
     mark("clicks_impressions")
+    ins("\n")
+    box("KEY INSIGHTS", [
+        f"Organic clicks {_pct_str(k['clicks_change_pct'])} compared to last month",
+        f"Impressions {_pct_str(k['impressions_change_pct'])} compared to last month",
+        f"{k['new_keywords_count']} new keywords entered Google rankings this month",
+        f"{k['lost_keywords_count']} keywords dropped from rankings this month",
+        f"Currently {k['keywords_in_top_10']} keywords ranked in the top 10 positions",
+    ], color="insight")
+    ins("\n")
 
-    # ── 3. GA4 Performance ───────────────────────────────────────────────────
-    h1("3. GA4 Performance")
+    # ── 3. GA4 Traffic Overview ───────────────────────────────────────────────
+    h1("3. GA4 Traffic Overview")
     ins(sections["traffic_analysis"] + "\n\n")
     h2("Traffic Overview")
     table(
@@ -259,22 +301,47 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
     )
     h2("Traffic by Channel")
     table(
-        headers=["Channel", "Sessions"],
-        rows=[[ch["channel"], f"{ch['sessions']:,}"] for ch in t["top_channels"][:6]],
+        headers=["Channel", "Sessions", "Share"],
+        rows=[
+            [ch["channel"],
+             f"{ch['sessions']:,}",
+             f"{ch['sessions'] / max(sum(c['sessions'] for c in t['top_channels']), 1) * 100:.1f}%"]
+            for ch in t["top_channels"][:6]
+        ],
     )
     mark("traffic_channels")
+    ins("\n")
+    top_channel = t["top_channels"][0]["channel"] if t["top_channels"] else "Organic Search"
+    box("KEY INSIGHTS", [
+        f"Organic sessions: {t['organic_sessions']:,}  ({_pct_str(t['organic_sessions_change_pct'])} vs last month)",
+        f"Total sessions across all channels: {t['total_sessions']:,}",
+        f"New users this month: {t['new_users']:,}  ({_pct_str(t['new_users_change_pct'])} vs last month)",
+        f"Top traffic source: {top_channel}",
+    ], color="insight")
+    ins("\n")
 
-    # ── 4. Engagement Quality ─────────────────────────────────────────────────
-    h1("4. Engagement Quality")
-    h2("Engagement Metrics")
+    # ── 4. Engagement Metrics ─────────────────────────────────────────────────
+    h1("4. Engagement Metrics")
+    h2("Engagement Overview")
     table(
-        headers=["Metric", "Value"],
+        headers=["Metric", "Value", "Benchmark"],
         rows=[
-            ["Bounce Rate",          f"{t['bounce_rate']}%"],
-            ["Avg Session Duration", _sec_to_duration(t["avg_session_duration_sec"])],
+            ["Bounce Rate",          f"{t['bounce_rate']}%",                      "Under 60% is strong"],
+            ["Avg Session Duration", _sec_to_duration(t["avg_session_duration_sec"]), "Over 2 min is good"],
+            ["New Users",            f"{t['new_users']:,}",                        "-"],
+            ["Total Sessions",       f"{t['total_sessions']:,}",                   "-"],
         ],
     )
     mark("engagement")
+    ins("\n")
+    bounce_note = "Bounce rate is within a healthy range." if float(t["bounce_rate"]) < 60 else "Bounce rate needs improvement. Focus on page relevance."
+    box("KEY INSIGHTS", [
+        f"Bounce rate: {t['bounce_rate']}%  (lower is better)",
+        f"Average session duration: {_sec_to_duration(t['avg_session_duration_sec'])}",
+        bounce_note,
+        "Session duration reflects how engaged users are with the content.",
+    ], color="insight")
+    ins("\n")
 
     # ── 5. Business Impact ────────────────────────────────────────────────────
     h1("5. Business Impact")
@@ -282,20 +349,27 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
     org_target = targets.get("organic_sessions_goal", "-")
     kw_target  = targets.get("top_10_keywords_goal", "-")
     bl_target  = targets.get("new_backlinks_goal", "-")
+    org_status = _goal_status(t["organic_sessions"], org_target)
+    kw_status  = _goal_status(k["keywords_in_top_10"], kw_target)
+    bl_status  = _goal_status(b["new_backlinks_count"], bl_target)
     table(
         headers=["KPI", "Target", "Actual", "Status"],
         rows=[
             ["Organic Sessions",
              f"{org_target:,}" if isinstance(org_target, int) else str(org_target),
-             f"{t['organic_sessions']:,}",
-             _goal_status(t["organic_sessions"], org_target)],
-            ["Keywords in Top 10", str(kw_target), str(k["keywords_in_top_10"]),
-             _goal_status(k["keywords_in_top_10"], kw_target)],
-            ["New Backlinks", str(bl_target), str(b["new_backlinks_count"]),
-             _goal_status(b["new_backlinks_count"], bl_target)],
+             f"{t['organic_sessions']:,}", org_status],
+            ["Keywords in Top 10", str(kw_target), str(k["keywords_in_top_10"]), kw_status],
+            ["New Backlinks",      str(bl_target), str(b["new_backlinks_count"]), bl_status],
         ],
     )
-    mark("top_pages")
+    mark("goal_performance")
+    ins("\n")
+    box("KEY INSIGHTS", [
+        f"Organic sessions: {t['organic_sessions']:,} / {org_target} target  [{org_status}]",
+        f"Top 10 keywords: {k['keywords_in_top_10']} / {kw_target} target  [{kw_status}]",
+        f"New backlinks: {b['new_backlinks_count']} / {bl_target} target  [{bl_status}]",
+    ], color="insight")
+    ins("\n")
 
     # ── 6. Keyword Rankings ───────────────────────────────────────────────────
     h1("6. Keyword Rankings")
@@ -313,6 +387,19 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
     ] or [["No data available", "-", "-", "-"]]
     table(headers=["Keyword", "Prev Position", "Current Position", "Change"], rows=declined_rows)
     mark("keyword_rankings")
+    ins("\n")
+    best = k["most_improved"][0] if k["most_improved"] else None
+    best_line = (
+        f"Best improvement: '{best['keyword']}' moved from pos {round(best['position_prev'],1)} to {round(best['position'],1)}"
+        if best else f"{k['lost_keywords_count']} keywords dropped from rankings"
+    )
+    box("KEY INSIGHTS", [
+        f"{k['keywords_in_top_3']} keywords in top 3 positions   |   {k['keywords_in_top_10']} in top 10",
+        f"{k['new_keywords_count']} new keywords entered Google rankings",
+        best_line,
+        f"{k['total_keywords_tracked']} total keywords tracked this month",
+    ], color="insight")
+    ins("\n")
 
     # ── 7. Backlinks ──────────────────────────────────────────────────────────
     h1("7. Backlinks")
@@ -330,6 +417,15 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
             ["Avg DR of New Links",         str(b["avg_dr_new_backlinks"])],
         ],
     )
+    mark("backlink_overview")
+    ins("\n")
+    box("KEY INSIGHTS", [
+        f"New backlinks acquired: {b['new_backlinks_count']}  ({b['dofollow_new']} dofollow)",
+        f"Lost backlinks: {b['lost_backlinks_count']}",
+        f"Domain Rating: {b['domain_rating']}   |   Referring Domains: {b['referring_domains']}",
+        f"Average DR of new links: {b['avg_dr_new_backlinks']}",
+    ], color="insight")
+    ins("\n")
 
     # ── 8. Content Distribution ───────────────────────────────────────────────
     blog_data   = context.get("blog_posts", {})
@@ -338,8 +434,8 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
 
     h1("8. Content Distribution")
     ins(
-        f"This section documents all blog content published during {month_display}. "
-        f"Content distribution is a key driver of organic visibility, referral traffic, "
+        f"Blog content published during {month_display}. "
+        f"Content distribution drives organic visibility, referral traffic, "
         f"and topical authority for {domain}.\n\n"
     )
     h2("Blog Posts Published")
@@ -348,6 +444,7 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
         [e["platform"], e["link"]] for e in blog_items
     ] or [["No blog posts recorded for this month.", "-"]]
     table(headers=["Platform", "Link"], rows=blog_table_rows)
+    ins("\n")
 
     # ── 9. Authority Building ─────────────────────────────────────────────────
     listings_data  = context.get("business_listings", {})
@@ -356,9 +453,9 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
 
     h1("9. Authority Building")
     ins(
-        f"Business directory and listing submissions completed in {month_display}. "
-        f"Each listing builds domain authority, improves local SEO signals, and "
-        f"creates additional indexed backlinks for {domain}.\n\n"
+        f"Business directory submissions completed in {month_display}. "
+        f"Each listing builds domain authority, improves local SEO signals, "
+        f"and creates additional indexed backlinks for {domain}.\n\n"
     )
     h2("Business Listings / Backlinks")
     ins(f"Total Business Listings Created: {listings_total}\n\n")
@@ -366,6 +463,7 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
         [e["platform"], e["link"]] for e in listings_items
     ] or [["No business listings recorded for this month.", "-"]]
     table(headers=["Platform", "Link"], rows=listings_table_rows)
+    ins("\n")
 
     # ── 10. Content Performance ───────────────────────────────────────────────
     h1("10. Content Performance")
@@ -384,10 +482,21 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
         headers=["Query", "Clicks", "Impressions", "CTR", "Avg Position"],
         rows=content_rows,
     )
+    mark("top_pages")
+    mark("ctr_keywords")
+    ins("\n")
 
     # ── 11. Next Steps ────────────────────────────────────────────────────────
     h1("11. Next Steps")
-    ins(sections["next_steps"] + "\n")
+    ins(sections["next_steps"] + "\n\n")
+    box("GROWTH OPPORTUNITIES", [
+        "Move top 10 keywords into top 3 positions for higher click share.",
+        "Create content targeting high-impression, low-CTR keywords in GSC.",
+        "Continue building high-DR backlinks to increase Domain Rating.",
+        "Review and update underperforming pages to improve engagement.",
+        "Monitor Core Web Vitals and page speed scores monthly.",
+    ], color="growth")
+    ins("\n")
 
     table_specs.sort(key=lambda x: x["index"], reverse=True)
     return requests, table_specs, chart_markers
@@ -399,16 +508,22 @@ def _insert_tables_and_fill(docs_service, doc_id: str, table_specs: list):
     if not table_specs:
         return
 
-    insert_reqs = [
-        {
+    insert_reqs = []
+    for spec in table_specs:
+        if spec.get("is_highlight"):
+            rows_count = 1
+            cols_count = 1
+        else:
+            rows_count = 1 + len(spec["rows"])
+            cols_count = len(spec["headers"])
+        insert_reqs.append({
             "insertTable": {
-                "rows":    1 + len(spec["rows"]),
-                "columns": len(spec["headers"]),
+                "rows":     rows_count,
+                "columns":  cols_count,
                 "location": {"index": spec["index"]},
             }
-        }
-        for spec in table_specs
-    ]
+        })
+
     docs_service.documents().batchUpdate(
         documentId=doc_id, body={"requests": insert_reqs}
     ).execute()
@@ -421,33 +536,73 @@ def _insert_tables_and_fill(docs_service, doc_id: str, table_specs: list):
         log.warning("Expected %d tables but found %d.", len(specs_in_doc_order), len(doc_tables))
         specs_in_doc_order = specs_in_doc_order[:len(doc_tables)]
 
-    all_cells = []
+    all_cells  = []   # (para_start, cell_text, is_header, title_len)
+    style_reqs = []   # updateTableCellStyle for highlight box backgrounds
+
     for table_elem, spec in zip(doc_tables, specs_in_doc_order):
-        all_rows_data = [spec["headers"]] + spec["rows"]
+        is_highlight  = spec.get("is_highlight", False)
+        all_rows_data = spec["rows"] if is_highlight else [spec["headers"]] + spec["rows"]
+
         for row_idx, (table_row, row_data) in enumerate(
             zip(table_elem["table"]["tableRows"], all_rows_data)
         ):
             for table_cell, cell_value in zip(table_row["tableCells"], row_data):
                 para_start = table_cell["content"][0]["startIndex"]
-                all_cells.append((para_start, str(cell_value), row_idx == 0))
+                is_header  = (not is_highlight) and (row_idx == 0)
+                title_len  = spec.get("box_title_len", 0) if is_highlight else 0
+                all_cells.append((para_start, str(cell_value), is_header, title_len))
+
+        # Queue background colour for highlight boxes
+        if is_highlight:
+            style_reqs.append({
+                "updateTableCellStyle": {
+                    "tableCellStyle": {
+                        "backgroundColor": {"color": {"rgbColor": spec.get("box_color", _INSIGHT_BG)}}
+                    },
+                    "fields": "backgroundColor",
+                    "tableRange": {
+                        "tableCellLocation": {
+                            "tableStartLocation": {"index": table_elem["startIndex"]},
+                            "rowIndex":    0,
+                            "columnIndex": 0,
+                        },
+                        "rowSpan": 1,
+                        "columnSpan": 1,
+                    },
+                }
+            })
+
+    # Apply background colours first (no text shift)
+    if style_reqs:
+        docs_service.documents().batchUpdate(
+            documentId=doc_id, body={"requests": style_reqs}
+        ).execute()
 
     all_cells.sort(key=lambda x: x[0], reverse=True)
 
     fill_reqs = []
-    for para_start, cell_text, is_header in all_cells:
-        # Google Docs API rejects insertText with empty string — use en-dash placeholder
+    for para_start, cell_text, is_header, title_len in all_cells:
         if not cell_text:
             cell_text = "-"
         fill_reqs.append({"insertText": {"location": {"index": para_start}, "text": cell_text}})
-        if is_header and cell_text:
+
+        # Blue bold header for regular table header row
+        if is_header:
             fill_reqs.append({
                 "updateTextStyle": {
-                    "range": {
-                        "startIndex": para_start,
-                        "endIndex":   para_start + _u(cell_text),
-                    },
+                    "range": {"startIndex": para_start, "endIndex": para_start + _u(cell_text)},
                     "textStyle": _HEADER_CELL_STYLE,
                     "fields": "bold,foregroundColor",
+                }
+            })
+
+        # Bold blue title line for highlight boxes
+        if title_len > 0:
+            fill_reqs.append({
+                "updateTextStyle": {
+                    "range": {"startIndex": para_start, "endIndex": para_start + title_len},
+                    "textStyle": _BOX_TITLE_STYLE,
+                    "fields": "bold,fontSize,foregroundColor",
                 }
             })
 
