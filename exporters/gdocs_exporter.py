@@ -9,6 +9,7 @@ Credentials (in order of preference):
 import io
 import logging
 import os
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -275,7 +276,7 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
             ["Lost Keywords",     str(k["lost_keywords_count"]),   "-", "-"],
         ],
     )
-    h2("3 Month Progress Snapshot")
+    h2("Clicks vs Impressions Trend")
     mark("clicks_impressions")
     ins("\n")
     box("KEY INSIGHTS", [
@@ -299,6 +300,8 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
             ["New Users",        f"{t['new_users']:,}",        f"{t['new_users_prev']:,}",        _pct_str(t["new_users_change_pct"])],
         ],
     )
+    h2("Monthly Organic Sessions")
+    mark("traffic_organic")
     h2("Traffic by Channel")
     table(
         headers=["Channel", "Sessions", "Share"],
@@ -386,6 +389,8 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
         for kw in k["most_declined"][:5]
     ] or [["No data available", "-", "-", "-"]]
     table(headers=["Keyword", "Prev Position", "Current Position", "Change"], rows=declined_rows)
+    h2("Keyword Ranking Distribution")
+    mark("keyword_distribution")
     mark("keyword_rankings")
     ins("\n")
     best = k["most_improved"][0] if k["most_improved"] else None
@@ -528,7 +533,19 @@ def _insert_tables_and_fill(docs_service, doc_id: str, table_specs: list):
         documentId=doc_id, body={"requests": insert_reqs}
     ).execute()
 
-    doc = docs_service.documents().get(documentId=doc_id).execute()
+    # Retry the GET on transient connection errors (the doc can be large)
+    doc = None
+    for attempt in range(4):
+        try:
+            doc = docs_service.documents().get(documentId=doc_id).execute()
+            break
+        except Exception as exc:
+            if attempt < 3:
+                wait = 2 ** attempt
+                log.warning("Document GET failed (attempt %d): %s — retrying in %ds", attempt + 1, exc, wait)
+                time.sleep(wait)
+            else:
+                raise
     doc_tables = [el for el in doc["body"]["content"] if "table" in el]
 
     specs_in_doc_order = list(reversed(table_specs))
