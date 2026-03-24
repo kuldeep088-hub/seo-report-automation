@@ -1,6 +1,5 @@
 [phases.setup]
 nixPkgs = [
-  "python311",
   "gcc",
   "freetype",
   "pkg-config",
@@ -8,14 +7,4 @@ nixPkgs = [
   "libjpeg",
   "libpng",
   "cairo",
-  "gobject-introspection",
 ]
-
-[phases.install]
-cmds = [
-  "pip install --upgrade pip",
-  "pip install -r requirements.txt",
-]
-
-[start]
-cmd = "python startup.py && python scheduler.py"
