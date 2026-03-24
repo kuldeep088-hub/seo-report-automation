@@ -7,6 +7,8 @@ nixPkgs = [
   "zlib",
   "libjpeg",
   "libpng",
+  "cairo",
+  "gobject-introspection",
 ]
 
 [phases.install]
