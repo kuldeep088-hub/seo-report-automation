@@ -1,5 +1,6 @@
 [build]
 builder = "nixpacks"
+nixpacks.pkgs = ["cairo", "pkg-config"]
 
 [deploy]
 startCommand = "python startup.py && python scheduler.py"
