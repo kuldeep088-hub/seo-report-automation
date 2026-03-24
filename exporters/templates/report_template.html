@@ -128,6 +128,24 @@
 
     /* ── Page breaks ──────────────────────────────────────── */
     .page-break { page-break-before: always; }
+
+    /* ── Charts ───────────────────────────────────────────── */
+    .chart-container {
+      margin: 18px 0 10px 0;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+    .chart-container img {
+      width: 100%;
+      max-width: 520px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    .chart-caption {
+      font-size: 8pt;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -157,6 +175,12 @@
   <!-- ── TOP-LEVEL METRICS ────────────────────────────────── -->
   <div class="section">
     <div class="section-title">At a Glance</div>
+    {% if chart_images.get('sc_progress') %}
+    <div class="chart-container">
+      <img src="{{ chart_images['sc_progress'] }}" alt="3-Month Search Console Progress">
+      <div class="chart-caption">3-Month Progress Snapshot — Source: Google Search Console</div>
+    </div>
+    {% endif %}
     <div class="metrics-grid">
       <div class="metric-card">
         <div class="metric-label">Organic Sessions</div>
@@ -206,6 +230,13 @@
       {% endfor %}
     </div>
 
+    {% if chart_images.get('traffic_organic') %}
+    <div class="chart-container">
+      <img src="{{ chart_images['traffic_organic'] }}" alt="Organic Traffic Growth">
+      <div class="chart-caption">Monthly Organic Sessions — Source: Google Analytics 4</div>
+    </div>
+    {% endif %}
+
     <h3>Traffic by Channel</h3>
     <table>
       <thead>
@@ -223,6 +254,12 @@
         {% endfor %}
       </tbody>
     </table>
+    {% if chart_images.get('traffic_channels') %}
+    <div class="chart-container">
+      <img src="{{ chart_images['traffic_channels'] }}" alt="Traffic by Channel">
+      <div class="chart-caption">Sessions by Channel — Source: Google Analytics 4</div>
+    </div>
+    {% endif %}
   </div>
 
   <!-- ── KEYWORDS ─────────────────────────────────────────── -->
@@ -258,6 +295,19 @@
       </tbody>
     </table>
 
+    {% if chart_images.get('clicks_impressions') %}
+    <div class="chart-container">
+      <img src="{{ chart_images['clicks_impressions'] }}" alt="Clicks vs Impressions">
+      <div class="chart-caption">Search Console Performance: Clicks vs Impressions</div>
+    </div>
+    {% endif %}
+    {% if chart_images.get('keyword_distribution') %}
+    <div class="chart-container">
+      <img src="{{ chart_images['keyword_distribution'] }}" alt="Keyword Ranking Distribution">
+      <div class="chart-caption">Keyword Count by Position Band — Source: Google Search Console</div>
+    </div>
+    {% endif %}
+
     {% if keywords.most_improved %}
     <h3>Most Improved Keywords</h3>
     <table>
@@ -287,6 +337,13 @@
       {% endfor %}
     </div>
 
+    {% if chart_images.get('backlink_overview') %}
+    <div class="chart-container">
+      <img src="{{ chart_images['backlink_overview'] }}" alt="Backlinks Overview">
+      <div class="chart-caption">New vs Lost Backlinks — Source: Ahrefs</div>
+    </div>
+    {% endif %}
+
     {% if backlinks.top_new_backlinks %}
     <h3>Top New Backlinks This Month</h3>
     <table>
@@ -306,6 +363,25 @@
     </table>
     {% endif %}
   </div>
+
+  <!-- ── CONTENT PERFORMANCE ──────────────────────────────── -->
+  {% if chart_images.get('top_pages') or chart_images.get('ctr_keywords') %}
+  <div class="section page-break">
+    <div class="section-title">Content Performance</div>
+    {% if chart_images.get('top_pages') %}
+    <div class="chart-container">
+      <img src="{{ chart_images['top_pages'] }}" alt="Top Pages Performance">
+      <div class="chart-caption">Top Queries by Organic Clicks — Source: Google Search Console</div>
+    </div>
+    {% endif %}
+    {% if chart_images.get('ctr_keywords') %}
+    <div class="chart-container">
+      <img src="{{ chart_images['ctr_keywords'] }}" alt="CTR by Top Keywords">
+      <div class="chart-caption">Click-Through Rate by Top Keywords — Source: Google Search Console</div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
 
   <!-- ── WORK DONE ─────────────────────────────────────────── -->
   <div class="section page-break">

@@ -3,6 +3,7 @@ Exporter: PDF
 Renders Jinja2 HTML template → PDF using xhtml2pdf (pure Python, no native deps).
 """
 
+import base64
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -28,7 +29,17 @@ def _commas(value) -> str:
         return str(value)
 
 
-def export_pdf(context: dict, sections: dict, client_id: str, month: str) -> Path:
+def _chart_to_base64(path) -> str:
+    """Return a data URI for embedding a PNG chart directly in HTML."""
+    try:
+        data = Path(path).read_bytes()
+        return "data:image/png;base64," + base64.b64encode(data).decode()
+    except Exception:
+        return ""
+
+
+def export_pdf(context: dict, sections: dict, client_id: str, month: str,
+               charts: dict = None) -> Path:
     REPORTS_DIR.mkdir(exist_ok=True)
 
     env = Environment(
@@ -39,6 +50,13 @@ def export_pdf(context: dict, sections: dict, client_id: str, month: str) -> Pat
 
     template = env.get_template("report_template.html")
 
+    # Convert chart file paths to base64 data URIs for PDF embedding
+    chart_images = {}
+    if charts:
+        for name, path in charts.items():
+            if path and Path(path).exists():
+                chart_images[name] = _chart_to_base64(path)
+
     html_content = template.render(
         client=context["client"],
         report_month=month,
@@ -48,6 +66,7 @@ def export_pdf(context: dict, sections: dict, client_id: str, month: str) -> Pat
         backlinks=context["backlinks"],
         targets=context["targets"],
         sections=sections,
+        chart_images=chart_images,
     )
 
     safe_month = month.replace("-", "_")

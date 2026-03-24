@@ -5,6 +5,7 @@ Report Month: {report_month}
 
 TRAFFIC DATA:
 - Organic Sessions: {organic_sessions} (prev: {organic_sessions_prev}, change: {organic_sessions_change_pct:+.1f}%)
+- Organic Share of Total Traffic: {organic_share_pct:.1f}%
 - New Users: {new_users} (prev: {new_users_prev}, change: {new_users_change_pct:+.1f}%)
 - Bounce Rate: {bounce_rate}%
 - Avg Session Duration: {avg_session_duration_sec} seconds
@@ -13,6 +14,10 @@ TRAFFIC DATA:
 TOP CHANNELS:
 {top_channels_text}
 
+CHANNEL CHANGES:
+- Biggest Channel Growth: {biggest_channel_growth}
+- Biggest Channel Decline: {biggest_channel_decline}
+
 WRITING RULES (strictly follow these):
 - Do NOT use em dashes (—) anywhere. Use commas, colons, or shorter sentences instead.
 - Keep sentences short and direct. Maximum 20 words per sentence.
@@ -20,5 +25,6 @@ WRITING RULES (strictly follow these):
 - No long paragraphs. Maximum 3 sentences per paragraph.
 - Do NOT include headers or bullet points in your response.
 
-Write 2 short paragraphs. Explain what the numbers mean for the client's website growth.
-Be specific about organic vs other channel performance.
+Write 2 short paragraphs:
+Paragraph 1: Organic sessions performance with specific numbers and what the {organic_share_pct:.1f}% organic share means for the business.
+Paragraph 2: The most notable channel shift this month. Name the channel, give the session count, and explain what it means.

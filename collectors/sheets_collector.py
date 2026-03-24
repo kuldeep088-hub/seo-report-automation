@@ -184,3 +184,8 @@ def collect_blog_posts(config: dict, month: str) -> dict:
 def collect_business_listings(config: dict, month: str) -> dict:
     """Read business listings from the Business Listings Sheet for the given month."""
     return _collect_links(config, month, "google_sheet_listings_id", "Business Listings")
+
+
+def collect_backlinks_from_sheets(config: dict, month: str) -> dict:
+    """Read backlinks from the Backlinks Sheet for the given month."""
+    return _collect_links(config, month, "google_sheet_backlinks_id", "Backlinks")

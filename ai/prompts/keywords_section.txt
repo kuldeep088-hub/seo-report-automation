@@ -9,6 +9,8 @@ KEYWORD SUMMARY:
 - Keywords in Top 3: {keywords_in_top_3}
 - New Keywords Entered Rankings: {new_keywords_count}
 - Keywords Lost from Rankings: {lost_keywords_count}
+- Average CTR (Top 10 Keywords): {avg_ctr_top10:.2f}%
+- Best Opportunity (high impressions, low CTR): "{high_imp_low_ctr_keyword}" — {high_imp_low_ctr_impressions:,} impressions at only {high_imp_low_ctr_ctr:.2f}% CTR
 
 TOP 5 MOST IMPROVED KEYWORDS:
 {most_improved_text}
@@ -26,4 +28,6 @@ WRITING RULES (strictly follow these):
 - Do NOT include headers in your response.
 - Do NOT use bullet points in your response. Write in short paragraphs only.
 
-Write 2 short paragraphs. Highlight keyword wins. Briefly explain any declines without alarming the client.
+Write 2 short paragraphs:
+Paragraph 1: Highlight keyword wins — improved rankings and top click-drivers with specific numbers.
+Paragraph 2: Name the high-impression, low-CTR keyword specifically. Explain that improving its meta title or description could turn those impressions into clicks. Briefly note any declines without alarming the client.

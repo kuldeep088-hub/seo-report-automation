@@ -6,6 +6,7 @@ Charts are saved to charts/<client_id>/<month>/ and their paths returned.
 
 import json
 import logging
+import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -974,4 +975,19 @@ def generate_all_charts(context: dict, client_id: str) -> dict:
     }
 
     log.info("All %d charts generated.", len(charts))
+
+    # Also save canonical flat copies to charts/ for direct access
+    canonical_map = {
+        "traffic_growth":               charts["traffic_organic"],
+        "search_console_performance":   charts["clicks_impressions"],
+        "keyword_ranking_distribution": charts["keyword_distribution"],
+        "top_pages_performance":        charts["top_pages"],
+    }
+    CHART_DIR.mkdir(parents=True, exist_ok=True)
+    for name, src in canonical_map.items():
+        if src and Path(src).exists():
+            dst = CHART_DIR / f"{name}.png"
+            shutil.copy2(str(src), str(dst))
+            log.info("Canonical chart saved: %s", dst)
+
     return charts

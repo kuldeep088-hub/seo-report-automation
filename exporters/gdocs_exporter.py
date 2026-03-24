@@ -7,6 +7,7 @@ Credentials (in order of preference):
 """
 
 import io
+import json
 import logging
 import os
 import time
@@ -159,6 +160,102 @@ def _goal_status(actual, target) -> str:
 
 # ── Document content builder ──────────────────────────────────────────────────
 
+def _next_month_display(month_str: str) -> str:
+    from datetime import timedelta
+    dt = datetime.strptime(month_str, "%Y-%m").replace(day=1)
+    next_m = (dt + timedelta(days=32)).replace(day=1)
+    return next_m.strftime("%B %Y")
+
+
+def _parse_section(work_log: str, section_name: str) -> list[str]:
+    """Extract lines from a ## section in work_log.md."""
+    if f"## {section_name}" not in work_log:
+        return []
+    part = work_log.split(f"## {section_name}", 1)[1]
+    if "\n##" in part:
+        part = part.split("\n##")[0]
+    return [l.strip() for l in part.strip().splitlines() if l.strip()]
+
+
+def _parse_work_done(work_log: str) -> list[str]:
+    return _parse_section(work_log, "Work Done This Month")
+
+
+def _parse_highlights(work_log: str, k: dict, b: dict, listings_total: int, blog_total: int) -> list[str]:
+    lines = _parse_section(work_log, "Highlights")
+    if lines:
+        return lines
+    # Auto-build from data if not in work_log
+    return [
+        f"{k['keywords_in_top_10']} keywords ranked in Top 10",
+        f"{k['keywords_in_top_3']} keywords ranked in Top 3",
+        f"{k['new_keywords_count']} new keywords entered rankings",
+        f"{listings_total} new business directory listings created",
+        f"{blog_total} blog posts published",
+    ]
+
+
+def _parse_gmb_updates(work_log: str) -> list[list[str]]:
+    lines = _parse_section(work_log, "GMB Updates")
+    rows = []
+    for line in lines:
+        parts = [p.strip() for p in line.split("|")]
+        if len(parts) == 3:
+            rows.append(parts)
+    return rows
+
+
+def _parse_content_pipeline(work_log: str) -> list[list[str]]:
+    lines = _parse_section(work_log, "Content Pipeline")
+    rows = []
+    for line in lines:
+        parts = [p.strip() for p in line.split("|")]
+        if len(parts) == 6:
+            rows.append(parts)
+    return rows
+
+
+def _build_platform_purpose_table(blog_items: list) -> list[list[str]]:
+    purpose_map = {
+        "substack":    "Long-form educational content",
+        "medium":      "Authority building",
+        "quora":       "Traffic generation & question targeting",
+        "blogspot":    "Indexed blog distribution",
+        "blogger":     "Indexed blog distribution",
+        "tumblr":      "Additional content indexing",
+        "hashnode":    "SEO backlink support",
+        "livejournal": "Additional indexed content",
+        "linkedin":    "Professional audience & backlinks",
+        "wordpress":   "Blog content distribution",
+    }
+    seen = set()
+    rows = []
+    for item in blog_items:
+        platform = item.get("platform", "").lower()
+        key = next((k for k in purpose_map if k in platform), None)
+        display = item.get("platform", platform.title())
+        if display not in seen:
+            seen.add(display)
+            rows.append([display, purpose_map.get(key, "Content distribution")])
+    return rows
+
+
+def _infer_city(context: dict) -> str:
+    domain = context["client"].get("domain", "")
+    name   = context["client"].get("name", "")
+    for city in ["jaipur", "delhi", "mumbai", "bangalore", "hyderabad", "lusaka"]:
+        if city in domain.lower() or city in name.lower():
+            return city.title()
+    return "your city"
+
+
+def _infer_topic(context: dict) -> str:
+    name = context["client"].get("name", "").lower()
+    if "school" in name or "college" in name:
+        return "school education and admissions"
+    return "the client's industry"
+
+
 def _build_text_requests(context: dict, sections: dict, client_id: str):
     """
     Builds all insertText + updateParagraphStyle + updateTextStyle requests.
@@ -247,6 +344,7 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
     ins(f"SEO Monthly Report - {client_display}\n", style="TITLE",
         text_style=_TITLE_TEXT_STYLE)
     ins(_format_month_subtitle(context["report_month"]) + "\n", style="SUBTITLE")
+    ins("Performance & Organic Traffic\n", style="SUBTITLE")
     ins("\n")
 
     # ── 1. Executive Summary ─────────────────────────────────────────────────
@@ -263,6 +361,9 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
 
     # ── 2. Search Console Performance ────────────────────────────────────────
     h1("2. Search Console Performance")
+    h2(f"Supporting view (Search Console – top pages list – {month_display} Data):")
+    mark("gsc_screenshot")
+    ins("\n")
     ins(sections["keyword_rankings"] + "\n\n")
     h2("Key Metrics")
     table(
@@ -458,10 +559,14 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
     listings_items = listings_data.get("items", [])
     listings_total = listings_data.get("total", 0)
 
+    backlinks_sheet  = context.get("backlinks_sheet", {})
+    backlinks_items  = backlinks_sheet.get("items", [])
+    backlinks_total  = backlinks_sheet.get("total", 0)
+
     h1("9. Authority Building")
     ins(
-        f"Business directory submissions completed in {month_display}. "
-        f"Each listing builds domain authority, improves local SEO signals, "
+        f"Business directory submissions and backlinks acquired in {month_display}. "
+        f"Each listing and backlink builds domain authority, improves local SEO signals, "
         f"and creates additional indexed backlinks for {domain}.\n\n"
     )
     h2("Business Listings / Backlinks")
@@ -470,6 +575,10 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
         [e["platform"], e["link"]] for e in listings_items
     ] or [["No business listings recorded for this month.", "-"]]
     table(headers=["Platform", "Link"], rows=listings_table_rows)
+
+    if backlinks_items:
+        ins(f"\nTotal Backlinks Acquired: {backlinks_total}\n\n")
+        table(headers=["Platform", "Link"], rows=[[e["platform"], e["link"]] for e in backlinks_items])
     ins("\n")
 
     # ── 10. Content Performance ───────────────────────────────────────────────
@@ -493,17 +602,86 @@ def _build_text_requests(context: dict, sections: dict, client_id: str):
     mark("ctr_keywords")
     ins("\n")
 
-    # ── 11. Next Steps ────────────────────────────────────────────────────────
-    h1("11. Next Steps")
-    ins(sections["next_steps"] + "\n\n")
-    box("GROWTH OPPORTUNITIES", [
-        "Move top 10 keywords into top 3 positions for higher click share.",
-        "Create content targeting high-impression, low-CTR keywords in GSC.",
-        "Continue building high-DR backlinks to increase Domain Rating.",
-        "Review and update underperforming pages to improve engagement.",
-        "Monitor Core Web Vitals and page speed scores monthly.",
-    ], color="growth")
+    # ── 10. High-Intent Content Pipeline (Next Month Focus) ─────────────────
+    h1(f"10. High-Intent Content Pipeline ({_next_month_display(context['report_month'])} Focus)")
+    pipeline_rows = _parse_content_pipeline(context.get("work_log", ""))
+    if pipeline_rows:
+        table(
+            headers=["Priority", "Content Topic / Blog Title", "Target Keyword", "Search Intent", "Content Type", "Goal"],
+            rows=pipeline_rows,
+        )
     ins("\n")
+
+    # ── 11. SEO Activities Done This Month ───────────────────────────────────
+    h1("11. SEO Activities Done This Month")
+    ins(f"{month_display} SEO Work Summary\n\n")
+    ins(
+        f"During {month_display}, the SEO strategy focused on improving organic visibility, "
+        f"local authority, and keyword positioning for {context['client']['name']}.\n\n"
+    )
+    h2("Key SEO Activities")
+    work_done_items = _parse_work_done(context.get("work_log", ""))
+    for item in work_done_items:
+        ins(item.lstrip("- ").strip() + "\n")
+    ins("\n")
+    h2("Highlights")
+    highlights = _parse_highlights(context.get("work_log", ""), k, b, listings_total, blog_total)
+    for line in highlights:
+        ins(line + "\n")
+    ins("\n")
+
+    # ── 12. GMB Updates Posted ───────────────────────────────────────────────
+    h1("12. GMB Updates Posted")
+    ins(f"Google Business Profile Activity — {month_display}\n\n")
+    ins(
+        f"To improve local search visibility and engagement with parents searching for schools, "
+        f"several updates were posted on the Google Business Profile.\n\n"
+    )
+    gmb_rows = _parse_gmb_updates(context.get("work_log", ""))
+    if gmb_rows:
+        h2("GMB Updates Published")
+        table(headers=["Week", "Post Topic", "Objective"], rows=gmb_rows)
+    h2("Impact")
+    ins("Improved local engagement signals\n")
+    ins("Increased brand searches and profile interactions\n")
+    ins(f"Supported rankings for keywords like 'CBSE school in {_infer_city(context)}'\n\n")
+
+    # ── 13. Content & Local Visibility ───────────────────────────────────────
+    h1("13. Content & Local Visibility")
+    ins("Content distribution played a major role in building topical authority and referral traffic.\n\n")
+    h2("Content Distribution")
+    ins(f"Total blog posts published across platforms:\n{blog_total} Blog Articles\n\n")
+    platform_purpose = _build_platform_purpose_table(blog_items)
+    if platform_purpose:
+        h2("Platforms Used")
+        table(headers=["Platform", "Purpose"], rows=platform_purpose)
+    ins(
+        "\nThis multi-platform publishing strategy helps Google understand the site's topic "
+        f"authority around {_infer_topic(context)}.\n\n"
+    )
+    h2("Local Authority Building")
+    ins(f"To improve local SEO signals, {listings_total} business directory listings were created.\n\n")
+    for e in listings_items[:7]:
+        ins(e["platform"] + "\n")
+    ins("\nThese listings strengthen:\n")
+    ins("Local search trust\n")
+    ins("Domain authority\n")
+    ins("Backlink profile\n\n")
+
+    # ── 14. High-Intent Content Pipeline (Current Month Focus) ───────────────
+    h1(f"14. High-Intent Content Pipeline ({month_display} Focus)")
+    top_pipeline = [r for r in pipeline_rows if r[0] == "High"][:5] if pipeline_rows else []
+    if top_pipeline:
+        table(
+            headers=["Priority", "Content Topic / Blog Title", "Target Keyword", "Search Intent", "Content Type", "Goal"],
+            rows=top_pipeline,
+        )
+    ins("\n")
+    h2("Expected Impact")
+    ins(f"This pipeline targets parents actively researching school admissions, which can generate:\n")
+    ins("High-quality organic traffic\n")
+    ins("More admission inquiries\n")
+    ins("Better rankings for commercial keywords\n\n")
 
     table_specs.sort(key=lambda x: x["index"], reverse=True)
     return requests, table_specs, chart_markers
@@ -737,8 +915,8 @@ def _insert_charts_into_doc(docs_service, drive_service, doc_id: str,
                     "location": {"index": start},
                     "uri": url,
                     "objectSize": {
-                        "width":  {"magnitude": 430, "unit": "PT"},
-                        "height": {"magnitude": 242, "unit": "PT"},
+                        "width":  {"magnitude": 480 if name == "gsc_screenshot" else 430, "unit": "PT"},
+                        "height": {"magnitude": 270 if name == "gsc_screenshot" else 242, "unit": "PT"},
                     },
                 }
             },
@@ -753,6 +931,57 @@ def _insert_charts_into_doc(docs_service, drive_service, doc_id: str,
 
 
 # ── Public entry point ────────────────────────────────────────────────────────
+
+def _save_report_log(client_id: str, month: str, doc_url: str, doc_title: str):
+    """Append this report to clients/<client_id>/reports_log.json."""
+    log_path = Path("clients") / client_id / "reports_log.json"
+    try:
+        entries = json.loads(log_path.read_text(encoding="utf-8")) if log_path.exists() else []
+    except Exception:
+        entries = []
+
+    # Update existing entry for this month or append new one
+    for entry in entries:
+        if entry.get("month") == month:
+            entry["url"]       = doc_url
+            entry["title"]     = doc_title
+            entry["generated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+            break
+    else:
+        entries.append({
+            "month":     month,
+            "title":     doc_title,
+            "url":       doc_url,
+            "generated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        })
+
+    entries.sort(key=lambda x: x["month"], reverse=True)
+    log_path.write_text(
+        json.dumps(entries, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    log.info("Report log updated: %s", log_path)
+
+
+def _find_existing_doc(drive_service, folder_id: str, doc_title: str) -> str | None:
+    """Return the doc URL if a file with doc_title already exists in folder_id."""
+    if not folder_id:
+        return None
+    safe = doc_title.replace("'", "\\'")
+    query = (
+        f"name='{safe}'"
+        f" and '{folder_id}' in parents"
+        f" and mimeType='application/vnd.google-apps.document'"
+        f" and trashed=false"
+    )
+    results = drive_service.files().list(
+        q=query, fields="files(id, name)", supportsAllDrives=True,
+        includeItemsFromAllDrives=True,
+    ).execute()
+    files = results.get("files", [])
+    if files:
+        return f"https://docs.google.com/document/d/{files[0]['id']}/edit"
+    return None
+
 
 def export_to_gdocs(context: dict, sections: dict, config: dict,
                     client_id: str = "", charts: dict = None) -> str:
@@ -783,6 +1012,14 @@ def export_to_gdocs(context: dict, sections: dict, config: dict,
         except Exception as exc:
             log.warning("Could not create subfolder '%s': %s — saving to parent folder.", subfolder_name, exc)
 
+    # Skip if this month's report already exists in Drive
+    existing_url = _find_existing_doc(drive_service, folder_id, doc_title)
+    if existing_url:
+        log.info("Report for %s already exists — skipping creation: %s",
+                 context["report_month"], existing_url)
+        _save_report_log(short_id, context["report_month"], existing_url, doc_title)
+        return existing_url
+
     file_meta = {"name": doc_title, "mimeType": "application/vnd.google-apps.document"}
     if folder_id:
         file_meta["parents"] = [folder_id]
@@ -804,10 +1041,18 @@ def export_to_gdocs(context: dict, sections: dict, config: dict,
     _insert_tables_and_fill(docs_service, doc_id, table_specs)
     log.info("Inserted and filled %d data tables", len(table_specs))
 
-    # Insert charts
-    if charts:
-        log.info("Inserting %d charts into document...", len(charts))
-        _insert_charts_into_doc(docs_service, drive_service, doc_id, chart_markers, charts)
+    # Insert charts (including GSC screenshot if available)
+    all_charts = dict(charts) if charts else {}
+    gsc_shot = context.get("gsc_screenshot")
+    if gsc_shot:
+        all_charts["gsc_screenshot"] = gsc_shot
+        log.info("GSC screenshot will be embedded: %s", gsc_shot)
+
+    if all_charts:
+        log.info("Inserting %d charts into document...", len(all_charts))
+        _insert_charts_into_doc(docs_service, drive_service, doc_id, chart_markers, all_charts)
         log.info("Chart insertion complete.")
 
-    return f"https://docs.google.com/document/d/{doc_id}/edit"
+    doc_url = f"https://docs.google.com/document/d/{doc_id}/edit"
+    _save_report_log(short_id, context["report_month"], doc_url, doc_title)
+    return doc_url

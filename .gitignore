@@ -10,9 +10,13 @@ charts/**/
 # Cached API data
 clients/*/data/
 
+# Credentials encoded output files
+*_B64.txt
+
 # Real client configs (keep only example_client)
 clients/*/config.yaml
 !clients/example_client/config.yaml
+!clients/scotle/config.yaml
 
 # Python
 __pycache__/

@@ -10,14 +10,20 @@ CURRENT SEO STATUS:
 - Organic Sessions: {organic_sessions} ({organic_sessions_change_pct:+.1f}% MoM)
 - Keywords in Top 10: {keywords_in_top_10}
 - Domain Rating: {domain_rating}
+- Mobile Performance Score: {mobile_perf_score}/100
+- Keywords Within Reach of Top 3 (positions 4-10): {near_top_keywords_count} keywords
+- Pages Needing Attention (low CTR or weak position): {low_performance_pages}
 
 WRITING RULES (strictly follow these):
 - Do NOT use em dashes (—) anywhere. Use commas, colons, or shorter sentences instead.
 - Keep each bullet short. Maximum 15 words per bullet.
 - Use plain language the client can understand easily.
-- Do NOT write em dashes, long sentences, or complex SEO jargon.
+- Base every bullet on the actual data above. No generic advice.
+- At least one bullet must reference Core Web Vitals if mobile score is below 90.
+- At least one bullet must reference a specific keyword or page from the data.
+- At least one bullet must come directly from the Next Month Plan.
 
 FORMAT:
 Write 5-6 bullet points using "- " prefix.
-Each bullet is one specific, clear action item.
+Each bullet is one specific, clear action item tied to the data.
 After the bullets, write one short sentence about the overall focus for next month.

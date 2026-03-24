@@ -13,15 +13,21 @@ KEY METRICS:
 - Keywords in Top 10: {keywords_in_top_10}
 - New Backlinks: {new_backlinks_count}
 - Domain Rating: {domain_rating}
+- Mobile Performance Score: {mobile_perf_score}/100
+- Top Landing Page: {top_landing_page} ({top_page_clicks} clicks)
+- Organic Sessions vs Target: {organic_sessions} / {organic_sessions_goal} ({goal_status})
 
 WRITING RULES (strictly follow these):
 - Do NOT use em dashes (—) anywhere. Use commas, colons, or end the sentence instead.
 - Keep sentences short. Maximum 20 words per sentence.
 - Use simple, professional language for a non-technical client.
+- If organic sessions missed target, acknowledge it briefly and pivot to a positive forward-looking statement.
+- If organic sessions hit target, celebrate it with a specific number.
+- Mention the mobile performance score if it is below 80 as something to improve.
 - Highlight wins clearly. Acknowledge drops briefly with context.
 - Do NOT include section headers.
 
 FORMAT:
 Write 5-7 bullet points (use "- " prefix). Each bullet is one clear, concise sentence.
-Cover: overall performance, organic traffic change, search visibility, backlinks, and outlook.
+Cover: overall performance, organic traffic vs target, search visibility, top landing page, backlinks, and outlook.
 End with one short positive closing sentence (not a bullet).

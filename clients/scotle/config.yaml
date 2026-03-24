@@ -1,0 +1,23 @@
+client:
+  name: "Scotle High School"
+  domain: "scotle.org"
+  ga4_property_id: "355283766"
+  gsc_site_url: "https://scotle.org"
+  ahrefs_target: "scotle.org"
+  pagespeed_url: "https://scotle.org"
+
+targets:
+  organic_sessions_goal: 5000
+  new_backlinks_goal: 10
+  top_10_keywords_goal: 20
+
+report:
+  output_format:
+    - gdocs
+  gdocs_folder_id: "1emNOaiDXWRunT9si07oe2NmPS9tqIjp2"
+  google_sheet_blog_id: "1B28nqVCT1pTriM1-pidK56diO6ZiWT9mkNRIJG0fuis/edit?gid=1230608557#gid=1230608557"
+  google_sheet_listings_id: "1z6RLrnnESUm54vlgGJtFdjRpiPbguli-fBGtHVac20Y/edit?gid=399239111#gid=399239111"
+  google_sheet_backlinks_id: "1B28nqVCT1pTriM1-pidK56diO6ZiWT9mkNRIJG0fuis/edit?gid=312035026#gid=312035026"
+  send_email: false
+  email_recipients:
+    - "your-email@gmail.com"
