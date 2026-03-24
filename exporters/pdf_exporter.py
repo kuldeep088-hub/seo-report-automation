@@ -9,7 +9,12 @@ from datetime import datetime
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from xhtml2pdf import pisa
+
+try:
+    from xhtml2pdf import pisa
+    _PDF_AVAILABLE = True
+except ImportError:
+    _PDF_AVAILABLE = False
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +45,9 @@ def _chart_to_base64(path) -> str:
 
 def export_pdf(context: dict, sections: dict, client_id: str, month: str,
                charts: dict = None) -> Path:
+    if not _PDF_AVAILABLE:
+        log.warning("xhtml2pdf not installed — skipping PDF export.")
+        return None
     REPORTS_DIR.mkdir(exist_ok=True)
 
     env = Environment(

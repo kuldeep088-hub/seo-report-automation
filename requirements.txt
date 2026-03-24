@@ -10,8 +10,8 @@ google-api-python-client>=2.131.0
 # HTTP
 requests>=2.32.0
 
-# PDF export
-xhtml2pdf>=0.2.13
+# PDF export (optional — only needed locally, not on Railway)
+# xhtml2pdf>=0.2.13
 Jinja2>=3.1.4
 
 # Config & env
